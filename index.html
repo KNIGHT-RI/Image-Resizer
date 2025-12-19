@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Online Image Resizer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+font-family: Arial, sans-serif;
+background: linear-gradient(135deg, #667eea, #764ba2);
+margin: 0;
+padding: 0;
+}
+
+.container {
+max-width: 600px;
+margin: 50px auto;
+background: #ffffff;
+padding: 25px;
+border-radius: 12px;
+box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+h1 {
+text-align: center;
+background: linear-gradient(90deg, #ff6a00, #ee0979);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+}
+
+p {
+text-align: center;
+color: #555;
+}
+
+input, button {
+width: 100%;
+margin-top: 15px;
+padding: 12px;
+font-size: 16px;
+border-radius: 6px;
+border: 1px solid #ccc;
+}
+
+button {
+background: linear-gradient(90deg, #36d1dc, #5b86e5);
+color: #fff;
+border: none;
+cursor: pointer;
+font-weight: bold;
+}
+
+button:hover {
+opacity: 0.9;
+}
+
+.preview {
+display: none;
+text-align: center;
+margin-top: 25px;
+}
+
+.preview img {
+max-width: 100%;
+border: 1px solid #ddd;
+padding: 6px;
+border-radius: 6px;
+}
+
+.download-btn {
+background: linear-gradient(90deg, #11998e, #38ef7d);
+margin-top: 12px;
+}
+
+.note {
+font-size: 13px;
+color: #666;
+margin-top: 12px;
+text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h1>Online Image Resizer</h1>
+<p>Resize images to your desired size without losing clarity</p>
+
+<input type="file" id="upload" accept="image/*">
+
+<input type="number" id="customSize" placeholder="Enter size in KB (e.g. 20, 50, 100)">
+
+<button onclick="processImage()">Resize Image</button>
+
+<div class="preview" id="previewBox">
+<h3>Preview</h3>
+<img id="previewImage">
+<p id="finalSize"></p>
+<a id="downloadLink">
+<button class="download-btn">Download Image</button>
+</a>
+</div>
+
+<div class="note">
+Result size will be as close as possible to the entered value.
+</div>
+</div>
+
+<script>
+function processImage() {
+const fileInput = document.getElementById("upload");
+const targetKB = parseInt(document.getElementById("customSize").value);
+
+if (!fileInput.files.length) {
+alert("Please upload an image");
+return;
+}
+if (!targetKB || targetKB <= 0) {
+alert("Please enter a valid size in KB");
+return;
+}
+
+const file = fileInput.files[0];
+const reader = new FileReader();
+
+reader.onload = function (e) {
+const img = new Image();
+img.src = e.target.result;
+
+img.onload = function () {
+let scale = 1.0;
+let quality = 0.9;
+let output;
+
+const canvas = document.createElement("canvas");
+const ctx = canvas.getContext("2d");
+
+for (let i = 0; i < 20; i++) {
+canvas.width = img.width * scale;
+canvas.height = img.height * scale;
+
+ctx.fillStyle = "#ffffff";
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+output = canvas.toDataURL("image/jpeg", quality);
+const sizeKB = output.length / 1024;
+
+if (sizeKB <= targetKB + 2) break;
+
+if (quality > 0.3) {
+quality -= 0.05;
+} else {
+scale -= 0.05;
+}
+}
+
+document.getElementById("previewImage").src = output;
+document.getElementById("finalSize").innerText =
+"Final size: " + Math.round(output.length / 1024) + " KB";
+
+const link = document.getElementById("downloadLink");
+link.href = output;
+link.download = "resized-image.jpg";
+
+document.getElementById("previewBox").style.display = "block";
+};
+};
+
+reader.readAsDataURL(file);
+}
+</script>
+
+</body>
+</html>
